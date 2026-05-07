@@ -1,0 +1,67 @@
+{
+  "_commentaire": "Configuration du fine-tuning SentenceTransformer — Module 02",
+  "_contexte": "all-MiniLM-L6-v2 fine-tuné sur paires (metadata offres -> description) du marché camerounais",
+
+  "modele_base": "sentence-transformers/all-MiniLM-L6-v2",
+  "dim_embedding": 384,
+  "output_dir": "models/st_finetuned",
+
+  "donnees": {
+    "train_path": "data/finetune/pairs_train.jsonl",
+    "val_path":   "data/finetune/pairs_val.jsonl",
+    "test_path":  "data/finetune/pairs_test.jsonl",
+    "champ_s1":   "sentence1",
+    "champ_s2":   "sentence2",
+    "champ_id":   "offre_id"
+  },
+
+  "entrainement": {
+    "num_epochs":           5,
+    "batch_size":           32,
+    "learning_rate":        2e-5,
+    "scheduler":            "WarmupCosine",
+    "warmup_steps":         100,
+    "weight_decay":         0.01,
+    "max_grad_norm":        1.0,
+    "evaluation_strategy":  "epoch",
+    "metric_for_best_model":"cosine_spearman",
+    "seed":                 42
+  },
+
+  "perte": {
+    "nom":         "MultipleNegativesRankingLoss",
+    "scale":       20.0,
+    "similarite":  "cosine",
+    "justification": "Adapté aux paires positives uniquement — les autres exemples du batch deviennent des négatifs implicites. Batch=32 -> 31 négatifs par exemple sans annotation."
+  },
+
+  "evaluateurs": {
+    "embedding_similarity": {
+      "actif": true,
+      "metriques": ["cosine_spearman", "cosine_pearson"]
+    },
+    "information_retrieval": {
+      "actif": true,
+      "k_values": [1, 5, 10],
+      "metriques": ["ndcg@10", "mrr@10", "recall@1", "recall@5", "recall@10"],
+      "corpus_role":  "sentence2 (descriptions offres)",
+      "queries_role": "sentence1 (métadonnées offres)"
+    }
+  },
+
+  "seuils_cibles": {
+    "cosine_spearman": 0.60,
+    "ndcg_at_10":      0.65,
+    "mrr_at_10":       0.55,
+    "recall_at_5":     0.60,
+    "recall_at_10":    0.75,
+    "delta_vs_baseline_positif": true
+  },
+
+  "hardware": {
+    "gpu_recommend":    "GPU >= 4 Go VRAM (T4 Colab / T500 local)",
+    "temps_estim_T4":   "15-25 minutes",
+    "temps_estim_T500": "45-75 minutes",
+    "temps_estim_CPU":  "~3 heures"
+  }
+}
