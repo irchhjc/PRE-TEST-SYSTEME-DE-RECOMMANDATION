@@ -1,0 +1,31 @@
+pandas>=2.2.0
+numpy>=2.0.0
+openpyxl>=3.1.0
+pyarrow>=16.0.0
+
+# Exploration notebooks and visualisation
+matplotlib>=3.8.0
+jupyterlab>=4.0.0
+ipykernel>=6.29.0
+
+# SentenceTransformer fine-tuning and evaluation
+sentence-transformers>=3.0.0
+torch>=2.3.0
+scikit-learn>=1.5.0
+scipy>=1.13.0
+tqdm>=4.66.0
+
+# API layer
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+
+# Knowledge graph and vector database
+neo4j>=5.20.0
+psycopg[binary]>=3.2.0
+pgvector>=0.3.0
+
+# LLM integrations and environment configuration
+openai>=1.40.0
+mistralai>=1.0.0
+python-dotenv>=1.0.0
