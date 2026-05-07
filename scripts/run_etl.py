@@ -13,7 +13,14 @@ import time
 import logging
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+ROOT = Path(__file__).resolve().parents[1]
+SRC_ETL = ROOT / "src" / "01_etl"
+SCRIPTS = ROOT / "scripts"
+
+for path in (ROOT, SRC_ETL, SCRIPTS):
+    path_str = str(path)
+    if path_str not in sys.path:
+        sys.path.insert(0, path_str)
 
 from utils import log
 import normalize_offres

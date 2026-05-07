@@ -5,7 +5,7 @@ Contient tous les mappings, chemins et constantes du projet
 from pathlib import Path
 
 # ── CHEMINS ─────────────────────────────────────────────────────
-ROOT       = Path(__file__).resolve().parent.parent.parent
+ROOT       = Path(__file__).resolve().parent
 DATA_RAW   = ROOT / "data" / "raw"
 DATA_PROC  = ROOT / "data" / "processed"
 DATA_FT    = ROOT / "data" / "finetune"
