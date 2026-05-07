@@ -64,7 +64,7 @@ PRE-TEST-SYSTEME-DE-RECOMMANDATION/
 |   |       |-- skill_gap.py
 |   |       `-- embed.py
 |   |
-|   `-- 06_evaluation/
+|   `-- 07_evaluation/
 |       |-- eval_embedding.py         Spearman, MRR@10, NDCG@10
 |       |-- eval_retrieval.py         Precision@K, Recall@K, NDCG@K
 |       |-- eval_faithfulness.py      detection hallucinations LLM 2
