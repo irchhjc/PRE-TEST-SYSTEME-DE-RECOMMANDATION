@@ -189,7 +189,7 @@ def build_mapping(mepc: dict, esco: dict) -> pd.DataFrame:
     df_occ    = esco.get("occupations", pd.DataFrame())
 
     if df_occ.empty:
-        log.warning("ESCO occupations non disponibles — mapping partiel uniquement")
+        log.warning("ESCO occupations non disponibles - mapping partiel uniquement")
         return pd.DataFrame()
 
     # Exploser les codes CITP multiples de la MEPC (ex: "111, 112" → ["111", "112"])
@@ -242,7 +242,7 @@ def build_mapping(mepc: dict, esco: dict) -> pd.DataFrame:
 
 def run(save=True) -> dict:
     log.info("=" * 60)
-    log.info("PIPELINE ETL — RÉFÉRENTIELS MEPC + NCF + ESCO")
+    log.info("PIPELINE ETL - RÉFÉRENTIELS MEPC + NCF + ESCO")
     log.info("=" * 60)
 
     mepc = load_mepc()
