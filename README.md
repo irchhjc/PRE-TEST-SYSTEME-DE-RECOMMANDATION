@@ -55,6 +55,15 @@ PRE-TEST-SYSTEME-DE-RECOMMANDATION/
 |   |   |-- recommendation_engine.py  pipeline complet end-to-end
 |   |   `-- roadmap_generator.py      generation roadmap NCF en francais
 |   |
+|   |-- 06_api/                      nouveau dossier
+|   |   |-- main.py                   app FastAPI + routes
+|   |   |-- schemas.py                modeles Pydantic, entrees et sorties
+|   |   |-- dependencies.py           connexions Neo4j + pgvector + ST
+|   |   `-- routers/
+|   |       |-- recommend.py
+|   |       |-- skill_gap.py
+|   |       `-- embed.py
+|   |
 |   `-- 06_evaluation/
 |       |-- eval_embedding.py         Spearman, MRR@10, NDCG@10
 |       |-- eval_retrieval.py         Precision@K, Recall@K, NDCG@K
