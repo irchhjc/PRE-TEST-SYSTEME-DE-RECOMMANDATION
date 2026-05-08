@@ -153,22 +153,20 @@ batch est trop grand pour la machine, l'entrainement devient lent ou instable.
 
 ### 5. Evaluation
 
-Le module evalue deux dimensions :
+Le module evalue principalement la recherche d'information.
 
-1. Similarite d'embeddings
+On utilise les metadonnees comme requetes et les descriptions comme corpus.
+Les metriques suivies sont :
 
-   On compare les vecteurs de `sentence1` et `sentence2` pour verifier si les
-   paires positives deviennent proches dans l'espace vectoriel.
+- `Recall@1`, `Recall@5`, `Recall@10`
+- `MRR@1`, `MRR@5`, `MRR@10`
+- `NDCG@1`, `NDCG@5`, `NDCG@10`
+- `Precision@1`, `Precision@5`, `Precision@10`
 
-2. Recherche d'information
-
-   On utilise les metadonnees comme requetes et les descriptions comme corpus.
-   Les metriques suivies sont :
-
-   - `Recall@1`, `Recall@5`, `Recall@10`
-   - `MRR@1`, `MRR@5`, `MRR@10`
-   - `NDCG@1`, `NDCG@5`, `NDCG@10`
-   - `Precision@1`, `Precision@5`, `Precision@10`
+Le choix du meilleur checkpoint se fait sur `NDCG@10` validation. Les
+correlations Pearson/Spearman ne sont pas utilisees ici, car le jeu de
+fine-tuning ne contient que des paires positives. Si tous les labels valent
+`1.0`, la correlation est mathematiquement indefinie et produit `nan`.
 
 Attention : une bonne metrique sur un petit split ne prouve pas encore que le
 systeme generalise. Si les textes partagent beaucoup de mots explicites, le

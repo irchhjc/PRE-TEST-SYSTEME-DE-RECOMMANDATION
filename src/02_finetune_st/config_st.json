@@ -24,7 +24,7 @@
     "weight_decay":         0.01,
     "max_grad_norm":        1.0,
     "evaluation_strategy":  "epoch",
-    "metric_for_best_model":"cosine_spearman",
+    "metric_for_best_model":"ndcg_at_10",
     "seed":                 42
   },
 
@@ -37,8 +37,8 @@
 
   "evaluateurs": {
     "embedding_similarity": {
-      "actif": true,
-      "metriques": ["cosine_spearman", "cosine_pearson"]
+      "actif": false,
+      "raison": "Non utilise avec des paires positives uniquement : les labels constants rendent Pearson/Spearman indefinis."
     },
     "information_retrieval": {
       "actif": true,

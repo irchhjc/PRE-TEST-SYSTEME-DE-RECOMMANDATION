@@ -23,6 +23,7 @@ import logging
 import time
 from pathlib import Path
 
+import torch
 from sentence_transformers import (
     SentenceTransformer,
     SentenceTransformerTrainer,
@@ -30,11 +31,7 @@ from sentence_transformers import (
     util,
 )
 from sentence_transformers.sentence_transformer.losses import MultipleNegativesRankingLoss
-from sentence_transformers.sentence_transformer.evaluation import (
-    EmbeddingSimilarityEvaluator,
-    InformationRetrievalEvaluator,
-    SequentialEvaluator,
-)
+from sentence_transformers.sentence_transformer.evaluation import InformationRetrievalEvaluator
 from datasets import Dataset
 
 logging.basicConfig(
@@ -42,6 +39,14 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)-7s  %(message)s",
     datefmt="%H:%M:%S",
 )
+for noisy_logger in (
+    "httpx",
+    "httpcore",
+    "huggingface_hub",
+    "huggingface_hub.utils",
+    "huggingface_hub.utils._http",
+):
+    logging.getLogger(noisy_logger).setLevel(logging.ERROR)
 log = logging.getLogger(__name__)
 
 
@@ -79,19 +84,12 @@ def to_hf_dataset(pairs: list) -> Dataset:
 
 def build_evaluators(val_pairs: list, test_pairs: list):
     """
-    Construit deux evaluateurs :
-    1. EmbeddingSimilarityEvaluator -> Spearman / Pearson rho
-    2. InformationRetrievalEvaluator -> NDCG@K, MRR@K, Recall@K
-    """
-    # --- EmbeddingSimilarityEvaluator (val) ---
-    sim_eval = EmbeddingSimilarityEvaluator(
-        sentences1=[p["sentence1"] for p in val_pairs],
-        sentences2=[p["sentence2"] for p in val_pairs],
-        scores=[1.0] * len(val_pairs),
-        name="val-embedding-similarity",
-        show_progress_bar=False,
-    )
+    Construit les evaluateurs de retrieval.
 
+    On n'utilise pas EmbeddingSimilarityEvaluator ici : toutes les paires sont
+    positives, donc les labels seraient constants (=1.0) et Pearson/Spearman
+    seraient mathematiquement indefinis.
+    """
     # --- InformationRetrievalEvaluator (val) ---
     queries, corpus, relevant = {}, {}, {}
     for p in val_pairs:
@@ -110,8 +108,6 @@ def build_evaluators(val_pairs: list, test_pairs: list):
         name="val-information-retrieval",
         show_progress_bar=True,
     )
-
-    seq_eval = SequentialEvaluator([sim_eval, ir_eval])
 
     # --- InformationRetrievalEvaluator (test) ---
     queries_t, corpus_t, relevant_t = {}, {}, {}
@@ -132,10 +128,10 @@ def build_evaluators(val_pairs: list, test_pairs: list):
         show_progress_bar=True,
     )
 
-    return seq_eval, test_eval
+    return ir_eval, test_eval
 
 
-def train(epochs=None, batch=None, lr=None, eval_only=False, model_path=None):
+def train(epochs=None, batch=None, lr=None, eval_only=False, model_path=None, online=False):
     cfg_t = CFG["entrainement"]
     num_epochs    = epochs or int(cfg_t["num_epochs"])
     batch_size    = batch  or int(cfg_t["batch_size"])
@@ -161,8 +157,11 @@ def train(epochs=None, batch=None, lr=None, eval_only=False, model_path=None):
 
     # Chargement du modele
     src = model_path if (eval_only and model_path) else CFG["modele_base"]
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     log.info(f"\nChargement : {src}")
-    model = SentenceTransformer(src)
+    log.info(f"  Device       : {device}")
+    log.info(f"  HF local     : {not online}")
+    model = SentenceTransformer(src, device=device, local_files_only=not online)
     n = sum(p.numel() for p in model.parameters())
     log.info(f"  Parametres : {n:,}")
 
@@ -209,8 +208,9 @@ def train(epochs=None, batch=None, lr=None, eval_only=False, model_path=None):
         save_strategy="epoch",
         save_total_limit=2,
         load_best_model_at_end=True,
-        metric_for_best_model="val-embedding-similarity_cosine_spearman",
+        metric_for_best_model="val-information-retrieval_cosine_ndcg@10",
         greater_is_better=True,
+        dataloader_pin_memory=torch.cuda.is_available(),
         logging_steps=max(1, steps_per_epoch // 5),
         report_to="none",
         seed=int(cfg_t["seed"]),
@@ -281,9 +281,14 @@ def main():
     parser.add_argument("--lr",        type=float, default=None)
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--model",     type=str,   default=None)
+    parser.add_argument(
+        "--online",
+        action="store_true",
+        help="Autorise les requetes Hugging Face. Par defaut, le modele est charge depuis le cache local.",
+    )
     args = parser.parse_args()
     train(epochs=args.epochs, batch=args.batch, lr=args.lr,
-          eval_only=args.eval_only, model_path=args.model)
+          eval_only=args.eval_only, model_path=args.model, online=args.online)
 
 
 if __name__ == "__main__":
