@@ -4,7 +4,7 @@ evaluate_st.py — Évaluation comparative baseline vs fine-tuné
 import argparse, json, logging, time
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
-from sentence_transformers.evaluation import InformationRetrievalEvaluator, EmbeddingSimilarityEvaluator, SequentialEvaluator
+from sentence_transformers.sentence_transformer.evaluation import InformationRetrievalEvaluator, EmbeddingSimilarityEvaluator, SequentialEvaluator
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-7s  %(message)s")
@@ -19,7 +19,7 @@ with open(Path(__file__).parent / "config_st.json") as f:
 
 
 def load_jsonl(p):
-    with open(p) as f: return [json.loads(l) for l in f]
+    with open(p, encoding="utf-8") as f: return [json.loads(l) for l in f]
 
 def build_evaluators(pairs, prefix):
     queries, corpus, relevant = {}, {}, {}
@@ -31,7 +31,7 @@ def build_evaluators(pairs, prefix):
     ir = InformationRetrievalEvaluator(
         queries=queries, corpus=corpus, relevant_docs=relevant,
         mrr_at_k=[1,5,10], ndcg_at_k=[1,5,10],
-        recall_at_k=[1,5,10], precision_at_k=[1,5,10],
+        precision_recall_at_k=[1,5,10],
         name=f"{prefix}-ir", show_progress_bar=True,
     )
     sim = EmbeddingSimilarityEvaluator(
@@ -40,7 +40,7 @@ def build_evaluators(pairs, prefix):
         scores=[1.0]*len(pairs),
         name=f"{prefix}-sim", show_progress_bar=False,
     )
-    return SequentialEvaluator([sim, ir], main_metric_greater_is_better=True), ir
+    return SequentialEvaluator([sim, ir]), ir
 
 def evaluate_one(model, evaluator, label):
     log.info(f"\n--- {label} ---")

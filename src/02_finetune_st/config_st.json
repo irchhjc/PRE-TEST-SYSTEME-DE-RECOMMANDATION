@@ -32,7 +32,7 @@
     "nom":         "MultipleNegativesRankingLoss",
     "scale":       20.0,
     "similarite":  "cosine",
-    "justification": "Adapté aux paires positives uniquement — les autres exemples du batch deviennent des négatifs implicites. Batch=32 -> 31 négatifs par exemple sans annotation."
+    "justification": "Adapté aux paires positives uniquement - les autres exemples du batch deviennent des négatifs implicites. Batch=32 -> 31 négatifs par exemple sans annotation."
   },
 
   "evaluateurs": {

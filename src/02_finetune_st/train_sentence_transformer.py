@@ -28,8 +28,8 @@ from sentence_transformers import (
     SentenceTransformerTrainer,
     SentenceTransformerTrainingArguments,
 )
-from sentence_transformers.losses import MultipleNegativesRankingLoss
-from sentence_transformers.evaluation import (
+from sentence_transformers.sentence_transformer.losses import MultipleNegativesRankingLoss
+from sentence_transformers.sentence_transformer.evaluation import (
     EmbeddingSimilarityEvaluator,
     InformationRetrievalEvaluator,
     SequentialEvaluator,
@@ -100,16 +100,12 @@ def build_evaluators(val_pairs: list, test_pairs: list):
         relevant_docs=relevant,
         mrr_at_k=[1, 5, 10],
         ndcg_at_k=[1, 5, 10],
-        recall_at_k=[1, 5, 10],
-        precision_at_k=[1, 5, 10],
+        precision_recall_at_k=[1, 5, 10],
         name="val-information-retrieval",
         show_progress_bar=True,
     )
 
-    seq_eval = SequentialEvaluator(
-        [sim_eval, ir_eval],
-        main_metric_greater_is_better=True,
-    )
+    seq_eval = SequentialEvaluator([sim_eval, ir_eval])
 
     # --- InformationRetrievalEvaluator (test) ---
     queries_t, corpus_t, relevant_t = {}, {}, {}
@@ -125,8 +121,7 @@ def build_evaluators(val_pairs: list, test_pairs: list):
         relevant_docs=relevant_t,
         mrr_at_k=[1, 5, 10],
         ndcg_at_k=[1, 5, 10],
-        recall_at_k=[1, 5, 10],
-        precision_at_k=[1, 5, 10],
+        precision_recall_at_k=[1, 5, 10],
         name="test-information-retrieval",
         show_progress_bar=True,
     )
