@@ -27,6 +27,7 @@ from sentence_transformers import (
     SentenceTransformer,
     SentenceTransformerTrainer,
     SentenceTransformerTrainingArguments,
+    util,
 )
 from sentence_transformers.sentence_transformer.losses import MultipleNegativesRankingLoss
 from sentence_transformers.sentence_transformer.evaluation import (
@@ -51,6 +52,11 @@ CFG_PATH  = Path(__file__).parent / "config_st.json"
 
 with open(CFG_PATH) as f:
     CFG = json.load(f)
+
+SIMILARITY_FUNCTIONS = {
+    "cosine": util.cos_sim,
+    "dot": util.dot_score,
+}
 
 
 def load_jsonl(path: Path) -> list:
@@ -169,10 +175,17 @@ def train(epochs=None, batch=None, lr=None, eval_only=False, model_path=None):
         return results
 
     # Fonction de perte
+    similarity_name = CFG["perte"].get("similarite", "cosine")
+    if similarity_name not in SIMILARITY_FUNCTIONS:
+        raise ValueError(
+            f"Similarite inconnue: {similarity_name!r}. "
+            f"Valeurs supportees: {sorted(SIMILARITY_FUNCTIONS)}"
+        )
+
     train_loss = MultipleNegativesRankingLoss(
         model=model,
         scale=CFG["perte"]["scale"],
-        similarity_fct_name=CFG["perte"]["similarite"],
+        similarity_fct=SIMILARITY_FUNCTIONS[similarity_name],
     )
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
