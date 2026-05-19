@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Project artifacts
+/models/
+
 # C extensions
 *.so
 
